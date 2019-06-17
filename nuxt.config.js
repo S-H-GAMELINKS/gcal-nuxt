@@ -59,9 +59,9 @@ module.exports = {
     }
   },
   env: {
-    CLIENT_ID: CLIENT_ID,
-    API_KEY: API_KEY,
-    DISCOVERY_DOCS: DISCOVERY_DOCS,
-    SCOPES: SCOPES
+    CLIENT_ID,
+    API_KEY,
+    DISCOVERY_DOCS,
+    SCOPES
   }
 }
