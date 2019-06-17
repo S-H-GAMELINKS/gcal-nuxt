@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+const { CLIENT_ID, API_KEY, DISCOVERY_DOCS, SCOPES } = process.env
 
 module.exports = {
   mode: 'spa',
@@ -54,5 +57,11 @@ module.exports = {
     */
     extend(config, ctx) {
     }
+  },
+  env: {
+    CLIENT_ID: CLIENT_ID,
+    API_KEY: API_KEY,
+    DISCOVERY_DOCS: DISCOVERY_DOCS,
+    SCOPES: SCOPES
   }
 }
