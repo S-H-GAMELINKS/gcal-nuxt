@@ -26,8 +26,40 @@
 
 <script>
 import Logo from '~/components/Logo.vue'
+import Vue from 'vue';
+import VueGoogleApi from 'vue-google-api'
+
+const config = {
+  apiKey: process.env.API_KEY,
+  clientId: process.env.CLIENT_ID,
+  scope: process.env.SCOPES,
+  discoveryDocs: [ process.env.DISCOVERY_DOCS ]
+}
+Vue.use(VueGoogleApi, config)
 
 export default {
+  mounted: function() {
+    console.log(this.$gapi)
+
+    this.$gapi.signIn()
+      .then(user => {
+        console.log('Signed in as %s', user.name)
+      })
+      .catch(err => {
+        console.error('Not signed in: %s', err.error)
+      })
+
+    this.$gapi.request({
+      path: 'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+      method: 'GET',
+      params: {
+        timeMin: (new Date()).toISOString(),
+        maxResults: 10
+      }
+    }).then(response => {
+      console.log(response)
+    })
+  },
   components: {
     Logo
   }
