@@ -1,5 +1,10 @@
 <template>
   <div class="container">
+    <div v-for="(talk, key, index) in talks" :key=index>
+      <p>{{talk}}</p>
+    </div>
+    <input v-model="content">
+    <button v-on:click="inputTalks">add</button>
   </div>
 </template>
 
@@ -16,6 +21,22 @@ const config = {
 Vue.use(VueGoogleApi, config)
 
 export default {
+  data: function() {
+    return {
+      task: {
+        'recurrence': [
+          'RRULE:FREQ=DAILY;COUNT=1'
+        ],
+        'attendees': [
+        ],
+        'reminders': {
+          'useDefault': true,
+        }
+      },
+      content: "",
+      talks: []
+    }
+  },
   mounted: function() {
     console.log(this.$gapi)
 
@@ -38,8 +59,47 @@ export default {
       console.log(response)
     })
   },
-  components: {
-    Logo
+  methods: {
+    checkInputs: function() {
+      if (this.content.match(/予定の追加/)){
+        this.talks.push("予定の名前を入力してください")
+        console.log(this.task)
+      }
+      if (this.content.match(/予定の名前：/)) {
+        let title = this.content.replace(/予定の名前：/, '')
+        this.task.summary = title
+        this.talks.push("予定の開始時間を入力してください")
+        console.log(this.task)
+      }
+      if (this.content.match(/予定の開始時間：/)) {
+        let start = this.content.replace(/予定の開始時間：/, '')
+        this.task.start = {dateTime: start, timeZone: "Asia/Tokyo"}
+        this.talks.push("予定の終了時間を入力してください")
+        console.log(this.task)
+      }
+      if (this.content.match(/予定の終了時間：/)) {
+        let end = this.content.replace(/予定の終了時間：/, '')
+        this.task.end = {dateTime: end, timeZone: "Asia/Tokyo"}
+        this.talks.push("予定を確定しますか？")
+        console.log(this.task)
+      }
+      if (this.content.match(/確定/)) {
+        this.$gapi.request({
+          path: 'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+          method: 'POST',
+          body : JSON.stringify(this.task)
+        }).then(response => {
+          console.log(response)
+        })
+      }
+
+    },
+    inputTalks: function() {
+      this.talks.push(this.content);
+      this.checkInputs();
+      this.content = "";
+      this.$forceUpdate();
+    }
   }
 }
 </script>
