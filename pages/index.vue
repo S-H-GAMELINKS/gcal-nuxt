@@ -5,6 +5,7 @@
     </div>
     <input v-model="content">
     <button v-on:click="inputTalks">add</button>
+    <button v-on:click="getMail">GetMail</button>
   </div>
 </template>
 
@@ -23,6 +24,7 @@ Vue.use(VueGoogleApi, config)
 export default {
   data: function() {
     return {
+      user: {},
       task: {
         'recurrence': [
           'RRULE:FREQ=DAILY;COUNT=1'
@@ -43,6 +45,8 @@ export default {
     this.$gapi.signIn()
       .then(user => {
         console.log('Signed in as %s', user.name)
+        console.log(user)
+        this.user = user
       })
       .catch(err => {
         console.error('Not signed in: %s', err.error)
@@ -99,6 +103,14 @@ export default {
       this.checkInputs();
       this.content = "";
       this.$forceUpdate();
+    },
+    getMail: function() {
+      this.$gapi.request({
+        path: `https://www.googleapis.com/gmail/v1/users/${this.user.id}/messages`,
+        method: 'GET'
+      }).then((response) => {
+        console.log(response)
+      })
     }
   }
 }
