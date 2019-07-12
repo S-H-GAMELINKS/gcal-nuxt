@@ -62,6 +62,13 @@ export default {
     }).then(response => {
       console.log(response)
     })
+
+    this.$gapi.request({
+      path: 'https://www.googleapis.com/calendar/v3/users/me/settings',
+      method: 'GET',
+    }).then(response => {
+      console.log(response)
+    })
   },
   methods: {
     checkInputs: function() {
@@ -109,7 +116,60 @@ export default {
         path: `https://www.googleapis.com/gmail/v1/users/${this.user.id}/messages`,
         method: 'GET'
       }).then((response) => {
-        console.log(response)
+        for(let i = 0; i < response.result.messages.length; i++) {
+          this.$gapi.request({
+            path: `https://www.googleapis.com/gmail/v1/users/${this.user.id}/messages/${response.result.messages[i].id}`,
+            method: 'GET'
+          }).then((response) => {
+            let str = JSON.parse(response.body).payload.parts[1].body.data
+            const decodedStr = new Buffer(str, 'base64').toString('utf-8')
+
+            let name = decodedStr.match(/予定の名前：.+<div>予定の開始時間：/)[0].replace(/<div>予定の開始時間：/, '').replace(/予定の名前：/, '')
+
+            if (name !== null) {
+              this.task.summary = name
+              console.log(name);
+            }
+
+            let start = decodedStr.match(/<div>予定の開始時間：.+<\/div><div>/)[0].replace(/<div>予定の開始時間：/, '').replace(/予定の名前：/, '').replace(/<\/div><div>予定の終了時間：.+<\/div><div>/, '').replace(/<\/div><div>/, '')
+
+            if (start !== null) {
+              this.task.start = {dateTime: start, timeZone: "Asia/Tokyo"}
+              console.log(start);
+            }
+
+            let end = decodedStr.match(/<div>予定の終了時間：.+/)[0].replace(/<div>予定の終了時間：/, '').replace(/<\/div><\/div>/, '')
+
+            if (end !== null) {
+              this.task.end = {dateTime: end, timeZone: "Asia/Tokyo"}
+              console.log(end);
+            }
+
+            if (this.task.title !== null && this.task.start !== null && this.task.end !== null) {
+              this.$gapi.request({
+                path: 'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+                method: 'POST',
+                body : JSON.stringify(this.task)
+              }).then(response => {
+                console.log(response)
+              })              
+            }
+/*
+            if (this.content.match(/予定の名前：/)) {
+              let title = this.content.replace(/予定の名前：/, '')
+              this.task.summary = title
+            }
+            if (this.content.match(/予定の開始時間：/)) {
+              let start = this.content.replace(/予定の開始時間：/, '')
+              this.task.start = {dateTime: start, timeZone: "Asia/Tokyo"}
+            }
+            if (this.content.match(/予定の終了時間：/)) {
+              let end = this.content.replace(/予定の終了時間：/, '')
+              this.task.end = {dateTime: end, timeZone: "Asia/Tokyo"}
+            }
+*/
+          })
+        }
       })
     }
   }
